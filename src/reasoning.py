@@ -39,7 +39,7 @@ class IntentRouter:
         r'\b(motorcycle|bike|vehicle)\b',
         r'\b(wearing|not wearing|without)\b',
         r'\b(count|how many|number)\b',
-        r'\b(detect|detection|identify)\b',
+        r'\b(detect(?:ed|ing|s)?|detection|identif(?:y|ied|ying|ies))\b',
         r'\b(safe|safety|compliance|violation)\b',
         r'\b(bounding.box|location|where)\b',
         r'\b(confident|confidence|sure)\b',
@@ -148,17 +148,23 @@ class IntentRouter:
         """
         question_lower = question.lower()
         
-        # Class mappings
+        # Class mappings — ORDER MATTERS: check specific classes before general
+        # "no-helmet" must be checked before "helmet" to prevent substring false match
         class_keywords = {
-            'helmet': ['helmet', 'headgear', 'hat'],
-            'no-helmet': ['no helmet', 'without helmet', 'not wearing helmet', 
-                         'no headgear', 'bare head', 'unprotected'],
+            'no-helmet': ['no helmet', 'no-helmet', 'without helmet', 'without a helmet',
+                         'not wearing helmet', 'not wearing a helmet',
+                         'not wearing helmets', 'no headgear', 'bare head', 'unprotected'],
+            'helmet': ['helmet', 'helmets', 'headgear', r'\bhat\b'],
             'motorcycle': ['motorcycle', 'bike', 'motorbike', 'vehicle']
         }
         
         for class_name, keywords in class_keywords.items():
             for keyword in keywords:
-                if keyword in question_lower:
+                if keyword.startswith(r'\b'):
+                    # Word-boundary regex match
+                    if re.search(keyword, question_lower):
+                        return class_name
+                elif keyword in question_lower:
                     return class_name
         
         return None
