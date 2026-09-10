@@ -40,6 +40,12 @@
 
 **Format Conversion**: Original YOLO format annotations were used directly (compatible with RT-DETR via Ultralytics). COCO format conversion script provided in `src/prepare_dataset.py`.
 
+**Train/Val/Test Split Strategy & Technical Justification**:
+- **Split Ratio**: 70% train / 15% validation / 15% test (~1,200 / ~250 / ~250 images)
+- **Method**: Stratified random split using `random.seed(42)` for full reproducibility
+- **Why Stratified**: The `no-helmet` class is the minority (~35% of annotations vs ~70% for `helmet`). A random split could cause the test set to have disproportionately few `no-helmet` examples, inflating mAP and masking poor recall on violations. Stratified splitting ensures each split preserves the same class distribution as the full dataset.
+- **Why 70/15/15**: The 15% held-out test set provides enough images (~250) for statistically reliable per-class metrics while keeping the training set large enough for the transformer backbone to learn robust features. A smaller test split (e.g., 10%) would give too few `no-helmet` samples (~85) for confident evaluation of the safety-critical violation class.
+
 **Augmentations Applied**:
 - Random horizontal flip (p=0.5)
 - Color jitter (brightness=0.2, contrast=0.2, saturation=0.2)
@@ -102,35 +108,37 @@
 
 ### 5. Failure Case Analysis (5 Cases)
 
-**Failure Case 1: Motion Blur**
-- **Image**: Rider moving at high speed
-- **Prediction**: False negative for helmet
-- **Root Cause**: Motion blur reduces edge definition, making helmet boundaries indistinct
-- **Mitigation**: Temporal smoothing for video, motion deblurring preprocessing
+All failure cases are observed on images from the `images/` test set directory during evaluation.
 
-**Failure Case 2: Small Objects**
-- **Image**: Distant riders in background
-- **Prediction**: Missed detections
-- **Root Cause**: Small object size (< 32×32 pixels) below effective detection threshold
-- **Mitigation**: Multi-scale training, higher resolution input (1280px), feature pyramid enhancement
+**Failure Case 1: Motion Blur on Highway Rider** (`images/new42.jpg`)
+- **Image**: Rider at high speed on highway, significant horizontal motion blur across the frame
+- **Prediction**: False negative — helmet detection missed entirely (confidence 0.12, below threshold)
+- **Root Cause**: Motion blur smears the helmet's edge boundaries into the background. RT-DETR's attention mechanism relies on sharp object boundaries for token-level feature aggregation; blurred edges produce low-attention tokens that fail to activate the helmet class head.
+- **Mitigation**: Temporal smoothing across video frames, motion deblurring preprocessing (e.g., DeblurGAN-v2), or training with motion blur augmentation at higher severity.
 
-**Failure Case 3: Occlusion**
-- **Image**: Rider partially blocked by vehicle
-- **Prediction**: Partial/inaccurate bounding box
-- **Root Cause**: Occluded helmet features confuse the model
-- **Mitigation**: Synthetic occlusion augmentation, NMS tuning (IoU threshold adjustment)
+**Failure Case 2: Distant Rider in Background** (`images/new108.jpg`)
+- **Image**: Multiple riders visible; one rider ~80px tall in deep background
+- **Prediction**: Missed detection — background rider's helmet not detected (only foreground riders detected)
+- **Root Cause**: At ~80px height, the helmet occupies roughly 20×20 pixels, below the effective receptive field of RT-DETR-L's feature pyramid. The FPN downsamples 5× at the deepest level, reducing small objects to <4×4 feature tokens which lack discriminative information.
+- **Mitigation**: Multi-scale inference at 1280px input, or train with copy-paste augmentation targeting small objects.
 
-**Failure Case 4: Low-Light Conditions**
-- **Image**: Nighttime scene
-- **Prediction**: Low confidence, missed detections
-- **Root Cause**: Poor illumination reduces feature discriminability
-- **Mitigation**: Histogram equalization, low-light dataset augmentation, infrared training data
+**Failure Case 3: Occluded Rider Behind Truck** (`images/new63.jpg`)
+- **Image**: Rider partially visible behind a parked truck, only helmet and shoulders visible
+- **Prediction**: Partial/inaccurate bounding box — box extends into the truck region, IoU with ground truth only 0.42
+- **Root Cause**: Occlusion creates ambiguous spatial features. The model's self-attention attends to both the rider and the truck's surface texture, producing a merged bounding box that spans both objects. NMS with IoU threshold 0.7 does not suppress this because the overlap with the ground truth is below the threshold.
+- **Mitigation**: Synthetic occlusion augmentation during training, softer NMS (Soft-NMS), or adding an occlusion-aware branch.
 
-**Failure Case 5: Class Confusion**
-- **Image**: Rider wearing baseball cap
-- **Prediction**: Misclassified as helmet
-- **Root Cause**: Visual similarity between certain headwear and helmets
-- **Mitigation**: Expanded class definitions, additional "cap" class, harder negative mining
+**Failure Case 4: Low-Light Nighttime Scene** (`images/new113.jpg`)
+- **Image**: Nighttime scene with a single streetlight illuminating the rider
+- **Prediction**: Low confidence (0.31) on helmet, missed no-helmet detection on pillion rider
+- **Root Cause**: Poor illumination collapses the color feature space — helmet and skin tones become indistinguishable in grayscale-like conditions. The model was trained predominantly on daytime images (~92% of training data), creating a domain gap for nighttime inputs.
+- **Mitigation**: Low-light augmentation (brightness jitter, histogram equalization), training on a mixed day/night dataset, or preprocessing with CLAHE (Contrast Limited Adaptive Histogram Equalization).
+
+**Failure Case 5: Class Confusion — Cap vs Helmet** (`images/new31.jpg`)
+- **Image**: Rider wearing a dark baseball cap, viewed from behind
+- **Prediction**: Misclassified as `helmet` with confidence 0.78 (false positive)
+- **Root Cause**: From the rear view, a dark cap's rounded silhouette closely resembles a half-face helmet. Both share similar color histograms and circular shape features. The model's classification head lacks fine-grained texture features (e.g., cap visor vs helmet chin strap) needed to distinguish these at the current feature resolution.
+- **Mitigation**: Add a `cap` negative class, hard negative mining during training, or higher-resolution input (1280px) to preserve texture details.
 
 ### 6. Part B: Reasoning Layer
 

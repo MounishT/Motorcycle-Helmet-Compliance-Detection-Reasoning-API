@@ -1,6 +1,6 @@
 """
 Download Model Weights Script
-Downloads pretrained or trained model weights
+Downloads pretrained or trained model weights from GitHub Releases
 """
 
 import os
@@ -23,7 +23,7 @@ def download_file(url: str, dest_path: str, chunk_size: int = 8192) -> bool:
         True if successful, False otherwise
     """
     try:
-        response = requests.get(url, stream=True)
+        response = requests.get(url, stream=True, timeout=30)
         response.raise_for_status()
         
         # Get total file size
@@ -50,10 +50,9 @@ def main():
     weights_dir = Path("weights")
     weights_dir.mkdir(exist_ok=True)
     
-    # Model weights URLs (replace with actual URLs)
+    # Model weights URLs - hosted on GitHub Releases
     weights_urls = {
-        "best.pt": "https://github.com/yourusername/helmet-detection-api/releases/download/v1.0.0/best.pt",
-        # Add other weights if needed
+        "best.pt": "https://github.com/MounishT/Motorcycle-Helmet-Compliance-Detection-Reasoning-API/releases/download/v1.0.0/best.pt",
     }
     
     print("Downloading model weights...")
@@ -67,11 +66,16 @@ def main():
             continue
         
         print(f"Downloading {filename}...")
+        print(f"URL: {url}")
         if download_file(url, str(dest_path)):
             print(f"Successfully downloaded {filename}")
         else:
             print(f"Failed to download {filename}")
-            print("Please download manually from the releases page.")
+            print("")
+            print("Manual download instructions:")
+            print(f"1. Go to: https://github.com/MounishT/Motorcycle-Helmet-Compliance-Detection-Reasoning-API/releases")
+            print(f"2. Download '{filename}' from the latest release")
+            print(f"3. Place it in: {weights_dir.absolute()}")
             sys.exit(1)
     
     print("="*50)

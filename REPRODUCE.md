@@ -15,8 +15,8 @@ This document provides step-by-step instructions to reproduce the results of thi
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/helmet-detection-api.git
-cd helmet-detection-api
+git clone https://github.com/MounishT/Motorcycle-Helmet-Compliance-Detection-Reasoning-API.git
+cd Motorcycle-Helmet-Compliance-Detection-Reasoning-API
 
 # Create virtual environment
 python -m venv venv
@@ -35,8 +35,8 @@ pip install -r requirements.txt
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/helmet-detection-api.git
-cd helmet-detection-api
+git clone https://github.com/MounishT/Motorcycle-Helmet-Compliance-Detection-Reasoning-API.git
+cd Motorcycle-Helmet-Compliance-Detection-Reasoning-API
 
 # Create conda environment
 conda create -n helmet-detection python=3.10
@@ -312,5 +312,5 @@ np.random.seed(42)
 ## Contact
 
 For questions about reproduction, contact:
-- Email: your.email@example.com
-- GitHub Issues: https://github.com/yourusername/helmet-detection-api/issues
+- Email: mounishrt@gmail.com
+- GitHub: https://github.com/MounishT

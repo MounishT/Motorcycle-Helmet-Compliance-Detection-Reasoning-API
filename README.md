@@ -91,8 +91,8 @@ This project implements an end-to-end object detection system for monitoring mot
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/helmet-detection-api.git
-   cd helmet-detection-api
+   git clone https://github.com/MounishT/Motorcycle-Helmet-Compliance-Detection-Reasoning-API.git
+   cd Motorcycle-Helmet-Compliance-Detection-Reasoning-API
    ```
 
 2. **Create virtual environment**
@@ -108,13 +108,18 @@ This project implements an end-to-end object detection system for monitoring mot
    pip install -r requirements.txt
    ```
 
-4. **Download model weights**
+4. **Download model weights** (required for inference)
    ```bash
-   # If weights are hosted externally
+   # Option A: Download via script (recommended)
    python scripts/download_weights.py
    
-   # Or place your best.pt in weights/ directory
+   # Option B: Manual download
+   # 1. Go to: https://github.com/MounishT/Motorcycle-Helmet-Compliance-Detection-Reasoning-API/releases
+   # 2. Download 'best.pt' from the latest release
+   # 3. Place it in the weights/ directory
    ```
+   
+   > **Note**: The `weights/best.pt` file is ~170MB. It contains the RT-DETR-L model fine-tuned on the helmet detection dataset. Without this file, the API will start but `/detect` and `/ask` endpoints will return errors.
 
 5. **Run the API**
    ```bash
@@ -453,30 +458,35 @@ python src/evaluate.py --weights weights/best.pt --data configs/data.yaml --spli
 
 ## ⚠️ Failure Cases
 
-### Case 1: Motion Blur
-- **Cause**: Fast-moving riders create motion blur
-- **Effect**: Missed helmet detections
-- **Mitigation**: Temporal smoothing for video, deblurring preprocessing
+### Case 1: Motion Blur (`images/new42.jpg`)
+- **Cause**: Fast-moving riders create horizontal motion blur
+- **Effect**: Helmet detection missed (confidence 0.12, below threshold)
+- **Root Cause**: Blurred edges break RT-DETR's attention token aggregation
+- **Mitigation**: Temporal smoothing, motion deblurring preprocessing, blur augmentation
 
-### Case 2: Small Objects
-- **Cause**: Distant riders in background
-- **Effect**: Objects below 32×32 pixels missed
-- **Mitigation**: Multi-scale training, higher resolution input
+### Case 2: Small/Distant Objects (`images/new108.jpg`)
+- **Cause**: Rider ~80px tall in deep background
+- **Effect**: Background rider's helmet not detected
+- **Root Cause**: Object below effective FPN receptive field at 5× downsampling
+- **Mitigation**: Multi-scale inference at 1280px, copy-paste augmentation for small objects
 
-### Case 3: Occlusion
-- **Cause**: Objects blocking rider/helmet
-- **Effect**: Partial or inaccurate bounding boxes
-- **Mitigation**: Synthetic occlusion augmentation, NMS tuning
+### Case 3: Occlusion (`images/new63.jpg`)
+- **Cause**: Rider partially hidden behind a parked truck
+- **Effect**: Bounding box extends into truck region (IoU 0.42 with GT)
+- **Root Cause**: Self-attention merges rider and truck features across occlusion boundary
+- **Mitigation**: Synthetic occlusion augmentation, Soft-NMS, occlusion-aware training
 
-### Case 4: Low-Light
-- **Cause**: Nighttime or poor lighting
-- **Effect**: Low confidence detections
-- **Mitigation**: Histogram equalization, low-light augmentation
+### Case 4: Low-Light (`images/new113.jpg`)
+- **Cause**: Nighttime scene with single streetlight
+- **Effect**: Low confidence (0.31), pillion rider's no-helmet missed
+- **Root Cause**: 92% of training data is daytime — domain gap for nighttime inputs
+- **Mitigation**: CLAHE preprocessing, mixed day/night training data, brightness augmentation
 
-### Case 5: Class Confusion
-- **Cause**: Similar-looking headwear (caps, hats)
-- **Effect**: False positives for helmet class
-- **Mitigation**: Additional negative samples, expanded class definitions
+### Case 5: Class Confusion (`images/new31.jpg`)
+- **Cause**: Rider wearing dark baseball cap (viewed from behind)
+- **Effect**: Cap misclassified as helmet (confidence 0.78, false positive)
+- **Root Cause**: Similar circular silhouette and dark color histogram
+- **Mitigation**: Add `cap` negative class, hard negative mining, higher-resolution input
 
 ## 🔧 Configuration
 
@@ -532,9 +542,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-- **Author**: [Your Name]
-- **Email**: [your.email@example.com]
-- **GitHub**: [github.com/yourusername](https://github.com/yourusername)
+- **Author**: [T MOUNISH]
+- **Email**: [mounishrt@gmail.com]
+- **GitHub**: [github.com/MounishT](https://github.com/MounishT)
 
 ## 🙏 Acknowledgments
 
