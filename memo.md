@@ -2,7 +2,7 @@
 
 ## Pre-Hackathon Screening Submission
 
-**Candidate**: [Your Name]  
+**Candidate**: [T MOUNISH]  
 **Date**: September 2026  
 **Track**: Computer Vision + Applied ML Engineering
 
