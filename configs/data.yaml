@@ -1,0 +1,32 @@
+# Helmet Detection Dataset Configuration
+# RT-DETR compatible format
+
+# Dataset paths (relative to this config file)
+path: ../data/processed
+train: train
+val: val
+test: test
+
+# Number of classes
+nc: 3
+
+# Class names (non-COCO classes: helmet, no-helmet)
+names:
+  0: helmet
+  1: no-helmet
+  2: motorcycle
+
+# Augmentation settings
+augmentation:
+  hsv_h: 0.015
+  hsv_s: 0.7
+  hsv_v: 0.4
+  degrees: 10.0
+  translate: 0.1
+  scale: 0.5
+  shear: 2.0
+  perspective: 0.0
+  flipud: 0.0
+  fliplr: 0.5
+  mosaic: 1.0
+  mixup: 0.0

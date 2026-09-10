@@ -1,0 +1,57 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info
+dist
+build
+.eggs
+
+# Virtual environments
+venv
+.venv
+env
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Data and images (large files)
+data/
+images/
+notebooks/
+logs/
+
+# Model weights (should be mounted at runtime)
+weights/*.pt
+weights/*.pth
+
+# Documentation
+*.md
+!README.md
+LICENSE
+CHANGELOG.md
+
+# Testing
+tests/
+pytest.ini
+.coverage
+htmlcov/
+
+# Docker
+docker-compose*.yml
+.dockerignore
+Dockerfile
+
+# Miscellaneous
+memo.md
+submission.txt
+verify_project.py

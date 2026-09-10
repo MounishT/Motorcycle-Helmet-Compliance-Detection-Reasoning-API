@@ -1,0 +1,39 @@
+# RT-DETR Object Detection - Helmet Compliance API
+# Python 3.10+ required
+
+# Core ML
+torch>=2.0.0
+torchvision>=0.15.0
+ultralytics>=8.0.0  # RT-DETR implementation
+
+# API
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+gunicorn>=21.2.0
+python-multipart>=0.0.6
+
+# Data processing
+opencv-python>=4.8.0
+Pillow>=10.0.0
+numpy>=1.24.0
+pycocotools>=2.0.6
+
+# Evaluation & metrics
+scikit-learn>=1.3.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Configuration
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# Logging
+tensorboard>=2.14.0
+
+# Testing
+pytest>=7.4.0
+httpx>=0.24.0
+
+# Utilities
+tqdm>=4.65.0
+requests>=2.31.0
