@@ -382,17 +382,21 @@ gunicorn api.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 ## 📁 Project Structure
 
 ```
-helmet-detection-api/
+Motorcycle-Helmet-Compliance-Detection-Reasoning-API/
 ├── api/
 │   ├── __init__.py
-│   └── main.py                 # FastAPI application
+│   ├── main.py                 # FastAPI application
+│   └── schemas.py              # Pydantic schemas
 ├── configs/
-│   └── data.yaml               # Dataset configuration
+│   ├── data.yaml               # Dataset configuration
+│   └── prometheus.yml          # Prometheus config
 ├── data/
-│   ├── processed/              # Processed dataset
-│   └── raw/                    # Raw dataset
+│   └── processed/              # Processed dataset
+├── images/                     # Test sample images
 ├── notebooks/
 │   └── eda_analysis.ipynb      # Exploratory data analysis
+├── scripts/
+│   └── download_weights.py     # Weight download helper
 ├── src/
 │   ├── __init__.py
 │   ├── evaluate.py             # Evaluation script
@@ -401,13 +405,16 @@ helmet-detection-api/
 │   ├── reasoning.py            # Reasoning layer
 │   └── train.py                # Training script
 ├── tests/
+│   ├── __init__.py
 │   ├── test_api.py             # API integration tests
-│   └── test_inference.py       # Unit tests
+│   ├── test_inference.py       # Unit tests
+│   └── test_reasoning_bugfix.py # Reasoning regression tests
 ├── weights/
 │   └── best.pt                 # Trained model weights
 ├── Dockerfile                  # Docker configuration
 ├── docker-compose.yml          # Docker Compose configuration
 ├── memo.md                     # 2-page submission memo
+├── REPRODUCE.md                # Reproducibility instructions
 ├── README.md                   # This file
 └── requirements.txt            # Python dependencies
 ```
